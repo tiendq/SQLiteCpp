@@ -3,6 +3,11 @@ project(SQLiteCpp)
 
 message (STATUS "CMake version: ${CMAKE_VERSION}")
 
+set(SQLITECPP_INTERNAL_SQLITE OFF CACHE BOOL "Build internal SQLite3")
+set(SQLITECPP_RUN_DOXYGEN OFF CACHE BOOL "Build documentation with Doxygen")
+set(SQLITECPP_BUILD_EXAMPLES OFF CACHE BOOL "Build examples")
+set(SQLITECPP_BUILD_TESTS OFF CACHE BOOL "Build unit tests")
+
 if(WIN32)
   set(DEV_NULL "NUL")
 else()
@@ -86,75 +91,75 @@ endif()
 
 ## Build the C++ Wrapper ##
 set(SQLITECPP_SRC
- ${PROJECT_SOURCE_DIR}/src/Backup.cpp
- ${PROJECT_SOURCE_DIR}/src/Column.cpp
- ${PROJECT_SOURCE_DIR}/src/Database.cpp
- ${PROJECT_SOURCE_DIR}/src/Exception.cpp
- ${PROJECT_SOURCE_DIR}/src/Statement.cpp
- ${PROJECT_SOURCE_DIR}/src/Transaction.cpp
+  src/Backup.cpp
+  src/Column.cpp
+  src/Database.cpp
+  src/Exception.cpp
+  src/Statement.cpp
+  src/Transaction.cpp
 )
 source_group(src FILES ${SQLITECPP_SRC})
 
 set(SQLITECPP_INC
- ${PROJECT_SOURCE_DIR}/include/SQLiteCpp/SQLiteCpp.h
- ${PROJECT_SOURCE_DIR}/include/SQLiteCpp/Assertion.h
- ${PROJECT_SOURCE_DIR}/include/SQLiteCpp/Backup.h
- ${PROJECT_SOURCE_DIR}/include/SQLiteCpp/Column.h
- ${PROJECT_SOURCE_DIR}/include/SQLiteCpp/Database.h
- ${PROJECT_SOURCE_DIR}/include/SQLiteCpp/Exception.h
- ${PROJECT_SOURCE_DIR}/include/SQLiteCpp/Statement.h
- ${PROJECT_SOURCE_DIR}/include/SQLiteCpp/Transaction.h
- ${PROJECT_SOURCE_DIR}/include/SQLiteCpp/Utils.h
- ${PROJECT_SOURCE_DIR}/include/SQLiteCpp/VariadicBind.h
+  include/SQLiteCpp/SQLiteCpp.h
+  include/SQLiteCpp/Assertion.h
+  include/SQLiteCpp/Backup.h
+  include/SQLiteCpp/Column.h
+  include/SQLiteCpp/Database.h
+  include/SQLiteCpp/Exception.h
+  include/SQLiteCpp/Statement.h
+  include/SQLiteCpp/Transaction.h
+  include/SQLiteCpp/Utils.h
+  include/SQLiteCpp/VariadicBind.h
 )
 source_group(include FILES ${SQLITECPP_INC})
 
 set(SQLITECPP_TESTS
- tests/Column_test.cpp
- tests/Database_test.cpp
- tests/Statement_test.cpp
- tests/Backup_test.cpp
- tests/Transaction_test.cpp
- tests/VariadicBind_test.cpp
- tests/Exception_test.cpp
+  src/tests/Column_test.cpp
+  src/tests/Database_test.cpp
+  src/tests/Statement_test.cpp
+  src/tests/Backup_test.cpp
+  src/tests/Transaction_test.cpp
+  src/tests/VariadicBind_test.cpp
+  src/tests/Exception_test.cpp
 )
 source_group(tests FILES ${SQLITECPP_TESTS})
 
 set(SQLITECPP_EXAMPLES
- examples/example1/main.cpp
+  src/examples/example1/main.cpp
 )
-source_group(example1 FILES ${SQLITECPP_EXAMPLES})
+source_group(examples FILES ${SQLITECPP_EXAMPLES})
 
 set(SQLITECPP_DOC
- README.md
- LICENSE.txt
- CHANGELOG.md
+  README.md
+  LICENSE.txt
+  CHANGELOG.md
 )
-source_group(doc FILES ${SQLITECPP_DOC})
+source_group(docs FILES ${SQLITECPP_DOC})
 
 set(SQLITECPP_SCRIPT
- .travis.yml
- appveyor.yml
- Doxyfile
- FindSQLiteCpp.cmake
+  .travis.yml
+  appveyor.yml
+  Doxyfile
+  FindSQLiteCpp.cmake
 )
 source_group(scripts FILES ${SQLITECPP_SCRIPT})
 
 set(TARGET_NAME SQLiteCpp)
 
 add_library(${TARGET_NAME} ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC} ${SQLITECPP_SCRIPT})
-target_include_directories(${TARGET_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_include_directories(${TARGET_NAME} PRIVATE include)
 
 # make the sqlite3 library part of the interface of the SQLiteCpp wrapper itself (the client app does not need to link to sqlite3)
 # PR https://github.com/SRombauts/SQLiteCpp/pull/111 "linked SQLiteCpp to sqlite3" commented out since it breacks install step from PR #118
 #target_link_libraries(SQLiteCpp PUBLIC sqlite3)
 
 if (UNIX AND (CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
-  set_target_properties(SQLiteCpp PROPERTIES COMPILE_FLAGS "-fPIC")
+  set_target_properties(${TARGET_NAME} PROPERTIES COMPILE_FLAGS "-fPIC")
 endif()
 
 # Allow the library to be installed via "make install" and found with "find_package"
-install(TARGETS SQLiteCpp
+install(TARGETS ${TARGET_NAME}
   EXPORT ${PROJECT_NAME}Config
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
@@ -175,20 +180,18 @@ install(EXPORT ${PROJECT_NAME}Config DESTINATION lib/cmake/${PROJECT_NAME})
 #    set_target_properties(SQLiteCpp PROPERTIES COMPILE_FLAGS "-DSQLITECPP_HAS_MEM_STRUCT")
 #endif()
 
-option(SQLITECPP_INTERNAL_SQLITE "Add the internal SQLite3 source to the project." ON)
-if (SQLITECPP_INTERNAL_SQLITE)
+# option(SQLITECPP_INTERNAL_SQLITE "Add the internal SQLite3 source to the project." OFF)
+if(SQLITECPP_INTERNAL_SQLITE)
   # build the SQLite3 C library (for ease of use/compatibility) versus Linux sqlite3-dev package
-  add_subdirectory(sqlite3)
-  include_directories("${PROJECT_SOURCE_DIR}/sqlite3")
-  target_include_directories(sqlite3 PUBLIC "${PROJECT_SOURCE_DIR}/sqlite3")
+  add_subdirectory(libs/sqlite3)
+  target_include_directories(${TARGET_NAME} PRIVATE libs/sqlite3)
 endif()
 
-option(SQLITECPP_RUN_DOXYGEN "Run Doxygen C++ documentation tool." OFF)
-
+# option(SQLITECPP_RUN_DOXYGEN "Run Doxygen C++ documentation tool." OFF)
 if(SQLITECPP_RUN_DOXYGEN)
   find_package(Doxygen)
+
   if(DOXYGEN_FOUND)
-    # add a Doxygen target to the "all" target
     add_custom_target(SQLiteCpp_doxygen
       ALL
       COMMAND doxygen Doxyfile > ${DEV_NULL}
@@ -199,7 +202,7 @@ else()
   message(STATUS "SQLITECPP_RUN_DOXYGEN OFF")
 endif()
 
-option(SQLITECPP_BUILD_EXAMPLES "Build examples." OFF)
+# option(SQLITECPP_BUILD_EXAMPLES "Build examples." OFF)
 if(SQLITECPP_BUILD_EXAMPLES)
   add_executable(SQLiteCpp_example1 ${SQLITECPP_EXAMPLES})
   target_link_libraries(SQLiteCpp_example1 SQLiteCpp sqlite3)
@@ -217,33 +220,31 @@ else()
   message(STATUS "SQLITECPP_BUILD_EXAMPLES OFF")
 endif()
 
-option(SQLITECPP_BUILD_TESTS "Build and run tests." OFF)
+# option(SQLITECPP_BUILD_TESTS "Build and run tests." OFF)
 if (SQLITECPP_BUILD_TESTS)
   # deactivate some warnings for compiling the gtest library
   if (NOT MSVC)
     add_compile_options(-Wno-variadic-macros -Wno-long-long -Wno-switch-enum -Wno-float-equal -Wno-conversion-null -Wno-switch-default -Wno-pedantic)
-  endif (NOT MSVC)
+  endif()
 
   # add the subdirectory containing the CMakeLists.txt for the gtest library
   # TODO: under Linux, uses libgtest-dev if found
-  if(NOT EXISTS "${PROJECT_SOURCE_DIR}/googletest/CMakeLists.txt")
+  if(NOT EXISTS "${PROJECT_SOURCE_DIR}/libs/googletest/CMakeLists.txt")
     message(FATAL_ERROR "Missing 'googletest' submodule! Either use 'git init submodule' and 'git update submodule' to get googletest according to the README, or deactivate unit tests with -DSQLITECPP_BUILD_TESTS=OFF")
   endif()
-  add_subdirectory(googletest)
-  include_directories("${PROJECT_SOURCE_DIR}/googletest/googletest/include")
 
-  # add the unit test executable
+  add_subdirectory(libs/googletest)
+
   add_executable(SQLiteCpp_tests ${SQLITECPP_TESTS})
+  target_compile_features(SQLiteCpp_tests PRIVATE cxx_std_17)
+  target_include_directories(SQLiteCpp_tests PRIVATE libs/googletest/googletest/include)
   target_link_libraries(SQLiteCpp_tests gtest_main SQLiteCpp sqlite3)
-  # Link target with dl for linux
+
   if(UNIX AND NOT APPLE)
     target_link_libraries(SQLiteCpp_tests dl)
   endif()
 
-  # add a "test" target:
   enable_testing()
-
-  # does the tests pass?
   add_test(UnitTests SQLiteCpp_tests)
 
   if(SQLITECPP_BUILD_EXAMPLES)
