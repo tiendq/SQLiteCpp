@@ -6,7 +6,7 @@ SQLiteC++
 [![AppVeyor Windows Build status](https://ci.appveyor.com/api/projects/status/github/SRombauts/SQLiteCpp?svg=true)](https://ci.appveyor.com/project/SbastienRombauts/SQLiteCpp "AppVeyor Windows Build status")
 [![Coveralls](https://img.shields.io/coveralls/SRombauts/SQLiteCpp.svg)](https://coveralls.io/github/SRombauts/SQLiteCpp "Coveralls test coverage")
 
-SQLiteC++ (SQLiteCpp) is a smart and easy to use C++ wrapper for SQLite3. It offers an encapsulation around the native C APIs of SQLite, with a few intuitive and well documented C++ classes.
+SQLiteC++ (SQLiteCpp) is an easy to use modern C++ wrapper for SQLite3 library. It offers an encapsulation around the native C APIs of SQLite, with a few intuitive and well documented C++ classes.
 
 [SQLite](http://www.sqlite.org/about.html) is a C library that implements a serverless transactional SQL database engine. It is the most widely deployed SQL database engine in the world. All of the code and documentation in SQLite has been dedicated to the public domain by the authors.
 
@@ -58,31 +58,20 @@ The `CMakeLists.txt` file defining the static library is provided in the root di
 Example for Linux:
 
 ```cmake
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/thirdparty/SQLiteCpp)
-
-include_directories(
-  ${CMAKE_CURRENT_LIST_DIR}/thirdparty/SQLiteCpp/include
-)
-
 add_executable(main src/main.cpp)
+add_subdirectory(${PROJECT_SOURCE_DIR}/libs/SQLiteCpp)
 
-target_link_libraries(main
-  SQLiteCpp
-  sqlite3
-  pthread
-  dl
-)
+target_include_directories(main PRIVATE ${PROJECT_SOURCE_DIR}/libs/SQLiteCpp/include)
+target_link_libraries(main SQLiteCpp sqlite3 dl)
 ```
 
-Thus this SQLiteCpp repository can be directly used as a Git submoldule.
-
-See the [SQLiteCppExample](https://github.com/tiendq/SQLiteCppExample) side repository for a standalone "from scratch" example.
+This SQLiteCpp repository can be directly used as a Git submoldule in your main repository, see [SQLiteCppExample](https://github.com/tiendq/SQLiteCppExample) for detail.
 
 Under Debian/Ubuntu/Mint Linux, you can install the `libsqlite3-dev` package if you don't want to use the embedded `sqlite3` library.
 
 ### Building example and unit tests
 
-Use git to clone the repository then init and update submodule `googletest`.
+Clone the repository then init and update submodule `googletest`.
 
 ```shell
 git clone https://github.com/tiendq/SQLiteCpp.git
@@ -94,33 +83,11 @@ git submodule update
 #### CMake and tests
 A CMake configuration file is also provided for multiplatform support and testing.
 
-Typical generic build for Visual Studio under Windows (from [build.bat](build.bat)):
-
-```Batchfile
+```shell
 mkdir build
-cd build
+cd bebug
 
-cmake ..        # cmake .. -G "Visual Studio 10"    # for Visual Studio 2010
-@REM Generate a Visual Studio solution for latest version found
 cmake -DSQLITECPP_BUILD_EXAMPLES=ON -DSQLITECPP_BUILD_TESTS=ON ..
-
-@REM Build default configuration (ie 'Debug')
-cmake --build .
-
-@REM Build and run tests
-ctest --output-on-failure
-```
-
-Generating the Makefile, building in Debug and executing the tests (from [build.sh](build.sh)):
-
-```Shell
-mkdir Debug
-cd Debug
-
-# Generate a Makefile for GCC (or Clang, depanding on CC/CXX envvar)
-cmake -DSQLITECPP_BUILD_EXAMPLES=ON -DSQLITECPP_BUILD_TESTS=ON ..
-
-# Build (ie 'make')
 cmake --build .
 
 # Build and run unit-tests (ie 'make test')
@@ -138,22 +105,11 @@ it's that you lack the `sqlite3` library: install the `libsqlite3-dev` package.
 
 If you get a single linker error `Column.cpp: undefined reference to sqlite3_column_origin_name`,
 it's that your `sqlite3` library was not compiled with the `SQLITE_ENABLE_COLUMN_METADATA` macro defined.
-You can either recompile it yourself (seek help online) or you can comment out the following line in `src/Column.h`:
+You can either recompile it yourself (seek help online) or you can comment out the following line in `include/SQLiteCpp/Column.h`:
 
 ```c++
 #define SQLITE_ENABLE_COLUMN_METADATA
 ```
-
-### Continuous Integration
-
-This project is continuously tested under Ubuntu Linux with the gcc and clang compilers
-using the Travis CI community service with the above CMake building and testing procedure.
-It is also tested in the same way under Windows Server 2012 R2 with Visual Studio 2013 compiler
-using the AppVeyor countinuous integration service.
-
-Detailed results can be seen online:
- - https://travis-ci.org/SRombauts/SQLiteCpp
- - https://ci.appveyor.com/project/SbastienRombauts/SQLiteCpp
 
 ### Thread-safety
 
@@ -168,8 +124,9 @@ Thus, SQLiteC++ naturally supports the multi-thread mode of SQLite:
 
 But SQLiteC++ does not support the fully thread-safe "Serialized" mode of SQLite, because of the way it shares the underlying SQLite precompiled statement in a custom shared pointer (see class `Statement::Ptr`).
 
-## Examples
-### The first sample demonstrates how to query a database and get results:
+### Examples
+
+This example sample demonstrates how to query a database and get results.
 
 ```c++
 try
@@ -200,32 +157,6 @@ catch (std::exception& e)
 }
 ```
 
-### The second sample shows how to manage a transaction:
-
-```C++
-try
-{
-    SQLite::Database    db("transaction.db3", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
-
-    db.exec("DROP TABLE IF EXISTS test");
-
-    // Begin transaction
-    SQLite::Transaction transaction(db);
-
-    db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)");
-
-    int nb = db.exec("INSERT INTO test VALUES (NULL, \"test\")");
-    std::cout << "INSERT INTO test VALUES (NULL, \"test\")\", returned " << nb << std::endl;
-
-    // Commit transaction
-    transaction.commit();
-}
-catch (std::exception& e)
-{
-    std::cout << "exception: " << e.what() << std::endl;
-}
-```
-
 ### How to handle assertion in SQLiteC++
 [Don't throw exceptions in destructors!](https://isocpp.org/wiki/faq/exceptions#dtors-shouldnt-throw), so SQLiteC++ uses `SQLITECPP_ASSERT()` to check for errors in destructors. If you don't want `assert()` to be called, you have to enable and define an assert handler as shown below, and by setting the flag `SQLITECPP_ENABLE_ASSERT_HANDLER` when compiling the library.
 
@@ -233,7 +164,7 @@ catch (std::exception& e)
 #ifdef SQLITECPP_ENABLE_ASSERT_HANDLER
 namespace SQLite
 {
-/// definition of the assertion handler enabled when SQLITECPP_ENABLE_ASSERT_HANDLER is defined in the project (CMakeList.txt)
+/// Definition of the custom assertion handler, enabled when SQLITECPP_ENABLE_ASSERT_HANDLER is defined.
 void assertion_failed(const char* apFile, const long apLine, const char* apFunc, const char* apExpr, const char* apMsg)
 {
     // Print a message to the standard error output stream, and abort the program.
@@ -241,19 +172,18 @@ void assertion_failed(const char* apFile, const long apLine, const char* apFunc,
     std::abort();
 }
 }
-#endif
+#endif // SQLITECPP_ENABLE_ASSERT_HANDLER
 ```
 
-### Coding Style Guidelines
-The source code use the CamelCase naming style variant where:
-- type names (class, struct, typedef, enums...) begin with a capital letter
-- files (.cpp/.h) are named like the class they contain
-- function and variable names begin with a lower case letter
-- member variables begin with a 'm', function arguments begin with a 'a', booleans with a 'b', pointers with a 'p'
-- each file, class, method and member variable is documented using Doxygen tags
-See also http://www.appinf.com/download/CppCodingStyleGuide.pdf for good guidelines
+### Coding guidelines
+The source code use the `CamelCase` naming style variant where:
+- Type names (class, struct, typedef, enums...) begin with a capital letter e.g. `Database`
+- Files are named like the class they contain e.g. `Database.cpp`
+- Function and variable names begin with a lower case letter e.g. `bindNoCopy`
+- Member variables begin with 'm_' e.g. `m_fileName`
+- Each file, class, method and member variable is documented using Doxygen tags
 
-## Other simple C++ SQLite wrappers
+## Other C++ SQLite wrappers
 
 See bellow a short comparison of other wrappers done at the time of writing:
  - [sqdbcpp](http://code.google.com/p/sqdbcpp/): RAII design, simple, no dependencies, UTF-8/UTF-16, new BSD license

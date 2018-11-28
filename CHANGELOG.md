@@ -1,3 +1,8 @@
+11/20/2018
+----------
+- Forked to new repo https://github.com/tiendq/SQLiteCpp
+- Clean up and re-organize project structure
+
 Mar 30 2012
 - Start of a new thin C++ SQLite wrapper
 
