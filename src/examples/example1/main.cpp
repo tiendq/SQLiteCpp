@@ -1,8 +1,6 @@
 #include <iostream>
-#include <cstdio>
-#include <cstdlib>
+#include <fstream>
 #include <string>
-
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 
@@ -10,11 +8,13 @@ using namespace std;
 
 #ifdef SQLITECPP_ENABLE_ASSERT_HANDLER
 namespace SQLite {
+
 void assertion_failed(const char* apFile, const long apLine, const char* apFunc, const char* apExpr, const char* apMsg) {
   std::cerr << apFile << ":" << apLine << ":" << " error: assertion failed (" << apExpr << ") in " << apFunc << "() with message \"" << apMsg << "\"\n";
   std::abort();
 }
-}
+
+} // SQLite
 #endif // SQLITECPP_ENABLE_ASSERT_HANDLER
 
 string getFullPath(string const &fileName) {
@@ -290,45 +290,39 @@ int main() {
 		db.exec("DROP TABLE IF EXISTS test");
 		db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value BLOB)");
 
-		FILE* fp = fopen(logoFileName.c_str(), "rb");
+		fstream logo{logoFileName, ios::in | ios::binary};
 
-		if (NULL != fp) {
+		if (logo.is_open()) {
 			char buffer[16 * 1024];
-			void* blob = &buffer;
-			int size = static_cast<int>(fread(blob, 1, 16 * 1024, fp));
-			buffer[size] = '\0';
-			fclose(fp);
-			cout << "Blob size = " << size << "\n";
+			logo.read(static_cast<char *>(buffer), sizeof buffer);
+			cout << "Blob size = " << logo.gcount() << '\n';
 
 			SQLite::Statement query(db, "INSERT INTO test VALUES (NULL, ?)");
-			query.bind(1, blob, size);
+			query.bind(1, &buffer, logo.gcount());
 
 			// Execute the one-step query to insert the blob
 			int nb = query.exec();
 			cout << "INSERT INTO test VALUES (NULL, ?)\", returned " << nb << '\n';
+
+			logo.close();
 		} else {
 			cout << "File " << logoFileName << " not found!\n";
 			return EXIT_FAILURE;
 		}
 
-		fp = fopen("out.png", "wb");
+		logo.open("out.png", ios::out | ios::binary);
 
-		if (NULL != fp) {
-			const void* blob = NULL;
-			size_t size;
-
+		if (logo.is_open()) {
 			SQLite::Statement query(db, "SELECT * FROM test");
 			cout << "SELECT * FROM test\n";
 
 			if (query.executeStep()) {
 				SQLite::Column colBlob = query.getColumn(1);
-				blob = colBlob.getBlob();
-				size = colBlob.getBytes();
+				const void* blob = colBlob.getBlob();
+				size_t size = colBlob.getBytes();
 				cout << "row (" << query.getColumn(0) << ", size=" << size << ")\n";
-				size_t sizew = fwrite(blob, 1, size, fp);
-
-				SQLITECPP_ASSERT(sizew == size, "fwrite failed");
-				fclose (fp);
+				logo.write(static_cast<char const *>(blob), size);
+				logo.close();
 			}
 		} else {
 			std::cout << "File out.png not created!\n";

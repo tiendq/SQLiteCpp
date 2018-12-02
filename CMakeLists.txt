@@ -148,6 +148,7 @@ source_group(scripts FILES ${SQLITECPP_SCRIPT})
 set(TARGET_NAME SQLiteCpp)
 
 add_library(${TARGET_NAME} ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC} ${SQLITECPP_SCRIPT})
+target_compile_features(${TARGET_NAME} PRIVATE cxx_std_17)
 target_include_directories(${TARGET_NAME} PRIVATE include)
 
 # make the sqlite3 library part of the interface of the SQLiteCpp wrapper itself (the client app does not need to link to sqlite3)
@@ -206,6 +207,7 @@ endif()
 if(SQLITECPP_BUILD_EXAMPLES)
   set(EXAMPLE_NAME SQLiteCpp_example1)
   add_executable(${EXAMPLE_NAME} ${SQLITECPP_EXAMPLES})
+  target_compile_features(${EXAMPLE_NAME} PRIVATE cxx_std_17)
   target_link_libraries(${EXAMPLE_NAME} SQLiteCpp sqlite3)
 
   # Link target with pthread and dl for linux
