@@ -51,7 +51,6 @@ private:
 
 int main() {
   // Using SQLITE_VERSION would require #include <sqlite3.h> which we want to avoid.
-  // cout << "SQLite3 version " << SQLITE_VERSION << '\n';
   // Use SQLite::VERSION if possible.
   cout << "SQLite3 version " << SQLite::VERSION << " (" << SQLite::getLibVersion() << ")" << '\n';
   cout << "SQLiteC++ version " << SQLITECPP_VERSION << '\n';
@@ -69,8 +68,7 @@ int main() {
     // Get a single value result with an easy to use shortcut
     string value = db.execAndGet("SELECT value FROM test WHERE id=2");
     cout << "execAndGet: " << value << '\n';
-  }
-  catch (exception const &e) {
+  } catch (exception const &e) {
     cout << "SQLite exception: " << e.what() << '\n';
     return EXIT_FAILURE;
   }
@@ -154,8 +152,7 @@ int main() {
 			weight = query.getColumn(2).getInt();
 			cout << "row (" << id << ", \"" << value << "\", " << weight << ")\n";
 		}
-  }
-  catch (exception const &e) {
+  } catch (exception const &e) {
 		cout << "SQLite exception: " << e.what() << '\n';
 		return EXIT_FAILURE;
   }
@@ -169,8 +166,7 @@ int main() {
 		example.listGreaterThan(8);
 		example.listGreaterThan(6);
 		example.listGreaterThan(2);
-	}
-	catch (exception const &e) {
+	} catch (exception const &e) {
 		cout << "SQLite exception: " << e.what() << '\n';
 		return EXIT_FAILURE;
   }
@@ -185,8 +181,7 @@ int main() {
 		// (when the underlying temporary Statement and Column objects are destroyed)
 		string value = db.execAndGet("SELECT value FROM test WHERE id=2");
 		cout << "execAndGet = " << value << '\n';
-	}
-	catch (exception const &e) {
+	} catch (exception const &e) {
 		cout << "SQLite exception: " << e.what() << '\n';
 		return EXIT_FAILURE;
   }
@@ -220,8 +215,7 @@ int main() {
 			cout << "row (" << query.getColumn(0) << ", \"" << query.getColumn(1) << "\")\n";
 
 		db.exec("DROP TABLE test");
-	}
-	catch (exception const &e) {
+	} catch (exception const &e) {
 		cout << "SQLite exception: " << e.what() << '\n';
 		return EXIT_FAILURE;
   }
@@ -234,8 +228,7 @@ int main() {
 		db.exec("DROP TABLE IF EXISTS test");
 
 		// Example of a successful transaction
-		try
-		{
+		try {
 			SQLite::Transaction tx(db);
 
 			db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)");
@@ -244,8 +237,7 @@ int main() {
 			cout << "INSERT INTO test VALUES (NULL, \"test\")\", returned " << nb << '\n';
 
 			tx.commit();
-		}
-		catch (exception const &e) {
+		} catch (exception const &e) {
 			cout << "SQLite exception: " << e.what() << '\n';
 			return EXIT_FAILURE;
 		}
@@ -264,8 +256,7 @@ int main() {
 			return EXIT_FAILURE;
 
 			tx.commit();
-		}
-		catch (exception const &e) {
+		} catch (exception const &e) {
 			cout << "SQLite exception: " << e.what() << '\n';
 		}
 
@@ -275,8 +266,7 @@ int main() {
 
 		while (query.executeStep())
 			cout << "row (" << query.getColumn(0) << ", \"" << query.getColumn(1) << "\")\n";
-	}
-	catch (exception const &e) {
+	} catch (exception const &e) {
 		cout << "SQLite exception: " << e.what() << '\n';
 		return EXIT_FAILURE;
   }
@@ -290,7 +280,7 @@ int main() {
 		db.exec("DROP TABLE IF EXISTS test");
 		db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value BLOB)");
 
-		fstream logo{logoFileName, ios::in | ios::binary};
+		ifstream logo{logoFileName, ios::in | ios::binary};
 
 		if (logo.is_open()) {
 			char buffer[16 * 1024];
@@ -310,9 +300,9 @@ int main() {
 			return EXIT_FAILURE;
 		}
 
-		logo.open("out.png", ios::out | ios::binary);
+		ofstream outpng{"out.png", ios::out | ios::binary};
 
-		if (logo.is_open()) {
+		if (outpng.is_open()) {
 			SQLite::Statement query(db, "SELECT * FROM test");
 			cout << "SELECT * FROM test\n";
 
@@ -321,15 +311,14 @@ int main() {
 				const void* blob = colBlob.getBlob();
 				size_t size = colBlob.getBytes();
 				cout << "row (" << query.getColumn(0) << ", size=" << size << ")\n";
-				logo.write(static_cast<char const *>(blob), size);
-				logo.close();
+				outpng.write(static_cast<char const *>(blob), size);
+				outpng.close();
 			}
 		} else {
 			std::cout << "File out.png not created!\n";
 			return EXIT_FAILURE;
 		}
-	}
-	catch (exception const &e) {
+	} catch (exception const &e) {
 		cout << "SQLite exception: " << e.what() << '\n';
 		return EXIT_FAILURE;
   }
@@ -359,8 +348,7 @@ int main() {
 
 		if (query.executeStep())
 			cout << query.getColumn(0).getInt() << "\t\"" << query.getColumn(1).getText() << "\"\n";
-	}
-	catch (exception const &e) {
+	} catch (exception const &e) {
 		cout << "SQLite exception: " << e.what() << '\n';
 		return EXIT_FAILURE;
   }
