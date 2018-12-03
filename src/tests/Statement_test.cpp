@@ -193,6 +193,16 @@ TEST(Statement, tryExecuteStep) {
     EXPECT_EQ(insert.tryReset(), SQLITE_CONSTRAINT);
 }
 
+TEST(Statement, exec) {
+  SQLite::Database db(":memory:", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+
+  EXPECT_EQ(0, db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)"));
+
+  SQLite::Statement query(db, "INSERT INTO test VALUES (NULL, 'test1')");
+	EXPECT_EQ(1, query.exec());
+  EXPECT_EQ(2, query.exec());
+}
+
 TEST(Statement, bindings) {
     // Create a new database
     SQLite::Database db(":memory:", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
