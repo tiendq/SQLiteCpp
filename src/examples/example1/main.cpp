@@ -49,6 +49,16 @@ private:
   SQLite::Statement m_query;
 };
 
+// Exception dispatcher, https://isocpp.org/wiki/faq/exceptions#throw-without-an-object
+int handleException() {
+	try {
+		throw;
+	} catch (exception const &e) {
+		cout << "SQLite exception: " << e.what() << '\n';
+		return EXIT_FAILURE;
+  }
+}
+
 int main() {
   // Using SQLITE_VERSION would require #include <sqlite3.h> which we want to avoid.
   // Use SQLite::VERSION if possible.
@@ -68,9 +78,8 @@ int main() {
     // Get a single value result with an easy to use shortcut
     string value = db.execAndGet("SELECT value FROM test WHERE id=2");
     cout << "execAndGet: " << value << '\n';
-  } catch (exception const &e) {
-    cout << "SQLite exception: " << e.what() << '\n';
-    return EXIT_FAILURE;
+  } catch (...) {
+    return handleException();
   }
 
   // Simple select query - few variations (2/7)
@@ -152,9 +161,8 @@ int main() {
 			weight = query.getColumn(2).getInt();
 			cout << "row (" << id << ", \"" << value << "\", " << weight << ")\n";
 		}
-  } catch (exception const &e) {
-		cout << "SQLite exception: " << e.what() << '\n';
-		return EXIT_FAILURE;
+  } catch (...) {
+		return handleException();
   }
 
 	// Object Oriented Basic example (3/7)
@@ -166,9 +174,8 @@ int main() {
 		example.listGreaterThan(8);
 		example.listGreaterThan(6);
 		example.listGreaterThan(2);
-	} catch (exception const &e) {
-		cout << "SQLite exception: " << e.what() << '\n';
-		return EXIT_FAILURE;
+	} catch (...) {
+		return handleException();
   }
 
 	// The execAndGet wrapper example (4/7)
@@ -181,9 +188,8 @@ int main() {
 		// (when the underlying temporary Statement and Column objects are destroyed)
 		string value = db.execAndGet("SELECT value FROM test WHERE id=2");
 		cout << "execAndGet = " << value << '\n';
-	} catch (exception const &e) {
-		cout << "SQLite exception: " << e.what() << '\n';
-		return EXIT_FAILURE;
+	} catch (...) {
+		return handleException();
   }
 
 	// Simple batch queries example (5/7)
@@ -215,9 +221,8 @@ int main() {
 			cout << "row (" << query.getColumn(0) << ", \"" << query.getColumn(1) << "\")\n";
 
 		db.exec("DROP TABLE test");
-	} catch (exception const &e) {
-		cout << "SQLite exception: " << e.what() << '\n';
-		return EXIT_FAILURE;
+	} catch (...) {
+		return handleException();
   }
 
   remove("test.db3");
@@ -237,9 +242,8 @@ int main() {
 			cout << "INSERT INTO test VALUES (NULL, \"test\")\", returned " << nb << '\n';
 
 			tx.commit();
-		} catch (exception const &e) {
-			cout << "SQLite exception: " << e.what() << '\n';
-			return EXIT_FAILURE;
+		} catch (...) {
+			return handleException();
 		}
 
 		// Example of a failed transaction
@@ -256,8 +260,8 @@ int main() {
 			return EXIT_FAILURE;
 
 			tx.commit();
-		} catch (exception const &e) {
-			cout << "SQLite exception: " << e.what() << '\n';
+		} catch (...) {
+			handleException();
 		}
 
 		// Check the results (expect only one row of result, as the second one has been rollbacked by the error)
@@ -266,9 +270,8 @@ int main() {
 
 		while (query.executeStep())
 			cout << "row (" << query.getColumn(0) << ", \"" << query.getColumn(1) << "\")\n";
-	} catch (exception const &e) {
-		cout << "SQLite exception: " << e.what() << '\n';
-		return EXIT_FAILURE;
+	} catch (...) {
+		return handleException();
   }
 
 	remove("transaction.db3");
@@ -318,9 +321,8 @@ int main() {
 			std::cout << "File out.png not created!\n";
 			return EXIT_FAILURE;
 		}
-	} catch (exception const &e) {
-		cout << "SQLite exception: " << e.what() << '\n';
-		return EXIT_FAILURE;
+	} catch (...) {
+		return handleException();
   }
 
 	remove("out.png");
@@ -348,9 +350,8 @@ int main() {
 
 		if (query.executeStep())
 			cout << query.getColumn(0).getInt() << "\t\"" << query.getColumn(1).getText() << "\"\n";
-	} catch (exception const &e) {
-		cout << "SQLite exception: " << e.what() << '\n';
-		return EXIT_FAILURE;
+	} catch (...) {
+		return handleException();
   }
 #endif
 
