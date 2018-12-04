@@ -7,12 +7,7 @@ set(SQLITECPP_INTERNAL_SQLITE OFF CACHE BOOL "Build internal SQLite3")
 set(SQLITECPP_RUN_DOXYGEN OFF CACHE BOOL "Build documentation with Doxygen")
 set(SQLITECPP_BUILD_EXAMPLES OFF CACHE BOOL "Build examples")
 set(SQLITECPP_BUILD_TESTS OFF CACHE BOOL "Build unit tests")
-
-if(WIN32)
-  set(DEV_NULL "NUL")
-else()
-  set(DEV_NULL "/dev/null")
-endif()
+set(SQLITE_ENABLE_COLUMN_METADATA ON CACHE BOOL "Enable Column::getColumnOriginName(). Require support from sqlite3 library.")
 
 if(MSVC)
   # disable Visual Studio warnings for fopen() used in the example
@@ -27,21 +22,16 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
   endif()
 else()
-  # Useful compile flags and extra warnings
-  add_compile_options(-fstack-protector -Wall -Wextra -Wpedantic -Wno-long-long -Wswitch-enum -Wshadow -Winline)
-
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++0x-compat")
-
   if(CMAKE_COMPILER_IS_GNUCXX)
     if(SQLITECPP_USE_GCOV AND CMAKE_COMPILER_IS_GNUCXX)
       if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        message (STATUS "Using GCov instrumentation")
+        message(STATUS "Using GCov instrumentation")
       else()
-        message (WARNING "GCov instrumentation works best in Debug mode")
+        message(WARNING "GCov instrumentation works best in Debug mode")
       endif()
 
       # NOTE would be usefull but not working with current google test and gcc 4.8 -fkeep-inline-functions
-      add_compile_options (-coverage)
+      add_compile_options(-coverage)
       set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -coverage")
     endif()
   endif()
@@ -49,7 +39,6 @@ endif()
 
 # Print CXX compiler information
 message(STATUS "CMAKE_CXX_COMPILER '${CMAKE_CXX_COMPILER}' '${CMAKE_CXX_COMPILER_ID}' '${CMAKE_CXX_COMPILER_VERSION}'")
-message(STATUS "CMAKE_CXX_FLAGS '${CMAKE_CXX_FLAGS}'")
 
 if(MSVC)
   message(STATUS "CMAKE_CXX_FLAGS_DEBUG '${CMAKE_CXX_FLAGS_DEBUG}'")
@@ -68,15 +57,9 @@ else()
   endif()
 endif()
 
+add_compile_options(-W -Wall -Wcast-qual -Wconversion -Weffc++ -Wold-style-cast -Wpedantic -Wshadow-all)
+
 # Options relative to SQLite and SQLiteC++ functions
-option(SQLITE_ENABLE_COLUMN_METADATA "Enable Column::getColumnOriginName(). Require support from sqlite3 library." ON)
-
-if(SQLITE_ENABLE_COLUMN_METADATA)
-  # Enable the use of SQLite column metadata and Column::getColumnOriginName() method,
-  # Require that the sqlite3 library is also compiled with this flag (default under Debian/Ubuntu, but not on Mac OS X).
-  add_definitions(-DSQLITE_ENABLE_COLUMN_METADATA)
-endif()
-
 option(SQLITE_ENABLE_ASSERT_HANDLER "Enable the user defintion of a assertion_failed() handler." OFF)
 if(SQLITE_ENABLE_ASSERT_HANDLER)
   # Enable the user defintion of a assertion_failed() handler (default to false, easier to handler for begginers).
