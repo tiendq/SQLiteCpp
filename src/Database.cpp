@@ -53,14 +53,8 @@ Database::Database(const string& aFilename,
 
 // Close the SQLite database connection.
 Database::~Database() {
-  const int ret = sqlite3_close(mpSQLite); // v2?
-
-  // Avoid unreferenced variable warning when build in release mode
-  (void) ret;
-
-  // Only case of error is SQLITE_BUSY: "database is locked" (some statements are not finalized)
-  // Never throw an exception in a destructor :
-  SQLITECPP_ASSERT(SQLITE_OK == ret, "database is locked");  // See SQLITECPP_ENABLE_ASSERT_HANDLER
+  int result = sqlite3_close_v2(mpSQLite);
+  SQLITECPP_ASSERT(SQLITE_OK == result, sqlite3_errmsg(mpSQLite));
 }
 
 /**
