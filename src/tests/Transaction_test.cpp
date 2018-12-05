@@ -97,7 +97,7 @@ TEST(Transaction, commitRollback) {
     {
         nbRows++;
         EXPECT_EQ(1, query.getColumn(0).getInt());
-        EXPECT_STREQ("first", query.getColumn(1).getText());
+        EXPECT_EQ("first", query.getColumn(1).getText());
     }
     EXPECT_EQ(1, nbRows);
 }

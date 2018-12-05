@@ -213,8 +213,8 @@ TEST(Database, execAndGet) {
     EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"third\",  7)"));
 
     // Get a single value result with an easy to use shortcut
-    EXPECT_STREQ("second",  db.execAndGet("SELECT value FROM test WHERE id=2"));
-    EXPECT_STREQ("third",   db.execAndGet("SELECT value FROM test WHERE weight=7"));
+    EXPECT_EQ("second",  db.execAndGet("SELECT value FROM test WHERE id=2"));
+    EXPECT_EQ("third",   db.execAndGet("SELECT value FROM test WHERE weight=7"));
     EXPECT_EQ(3,            db.execAndGet("SELECT weight FROM test WHERE value=\"first\"").getInt());
 }
 

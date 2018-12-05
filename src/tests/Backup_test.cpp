@@ -27,7 +27,6 @@ TEST(Backup, initException) {
     srcDB.exec("CREATE TABLE backup_test (id INTEGER PRIMARY KEY, value TEXT)");
     ASSERT_EQ(1, srcDB.exec("INSERT INTO backup_test VALUES (1, \"first\")"));
     ASSERT_EQ(1, srcDB.exec("INSERT INTO backup_test VALUES (2, \"second\")"));
-    EXPECT_THROW(SQLite::Backup backup(srcDB, srcDB), SQLite::Exception);
     EXPECT_THROW(SQLite::Backup backup(srcDB, "main", srcDB, "main"), SQLite::Exception);
     const std::string name("main");
     EXPECT_THROW(SQLite::Backup backup(srcDB, name, srcDB, name), SQLite::Exception);
@@ -58,10 +57,10 @@ TEST(Backup, executeStepOne) {
     SQLite::Statement query(destDB, "SELECT * FROM backup_test ORDER BY id ASC");
     ASSERT_TRUE(query.executeStep());
     EXPECT_EQ(1, query.getColumn(0).getInt());
-    EXPECT_STREQ("first", query.getColumn(1));
+    EXPECT_EQ("first", query.getColumn(1));
     ASSERT_TRUE(query.executeStep());
     EXPECT_EQ(2, query.getColumn(0).getInt());
-    EXPECT_STREQ("second", query.getColumn(1));
+    EXPECT_EQ("second", query.getColumn(1));
     remove("backup_test.db3");
     remove("backup_test.db3.backup");
 }
@@ -75,7 +74,7 @@ TEST(Backup, executeStepAll) {
     ASSERT_EQ(1, srcDB.exec("INSERT INTO backup_test VALUES (2, \"second\")"));
 
     SQLite::Database destDB("backup_test.db3.backup", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
-    SQLite::Backup backup(destDB, srcDB);
+    SQLite::Backup backup(destDB, "dest", srcDB, "source");
     const int res = backup.executeStep(); // uses default argument "-1" => execute all steps at once
     ASSERT_EQ(res, SQLITE_DONE);
     const int total = backup.getTotalPageCount();
@@ -86,10 +85,10 @@ TEST(Backup, executeStepAll) {
     SQLite::Statement query(destDB, "SELECT * FROM backup_test ORDER BY id ASC");
     ASSERT_TRUE(query.executeStep());
     EXPECT_EQ(1, query.getColumn(0).getInt());
-    EXPECT_STREQ("first", query.getColumn(1));
+    EXPECT_EQ("first", query.getColumn(1));
     ASSERT_TRUE(query.executeStep());
     EXPECT_EQ(2, query.getColumn(0).getInt());
-    EXPECT_STREQ("second", query.getColumn(1));
+    EXPECT_EQ("second", query.getColumn(1));
     remove("backup_test.db3");
     remove("backup_test.db3.backup");
 }
@@ -107,7 +106,7 @@ TEST(Backup, executeStepException) {
     }
     {
         SQLite::Database destDB("backup_test.db3.backup", SQLite::OPEN_READONLY);
-        SQLite::Backup backup(destDB, srcDB);
+        SQLite::Backup backup(destDB, "dest", srcDB, "source");
         EXPECT_THROW(backup.executeStep(), SQLite::Exception);
     }
     remove("backup_test.db3");
