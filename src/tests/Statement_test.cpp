@@ -73,7 +73,7 @@ TEST(Statement, invalid) {
     EXPECT_THROW(query.bind(0), SQLite::Exception);
     EXPECT_EQ(SQLITE_RANGE, db.getErrorCode());
     EXPECT_EQ(SQLITE_RANGE, db.getExtendedErrorCode());
-    EXPECT_STREQ("column index out of range", db.getErrorMsg());
+    EXPECT_EQ("column index out of range", db.getErrorMsg());
     EXPECT_EQ(SQLITE_RANGE, query.getErrorCode());
     EXPECT_EQ(SQLITE_RANGE, query.getExtendedErrorCode());
     EXPECT_STREQ("column index out of range", query.getErrorMsg());
