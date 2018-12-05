@@ -33,12 +33,12 @@ int getLibVersionNumber() noexcept {
 }
 
 // Open the provided database UTF-8 filename with SQLite::OPEN_xxx provided flags.
-Database::Database(const std::string& aFilename,
+Database::Database(const string& aFilename,
                    const int          aFlags         /* = SQLite::OPEN_READONLY*/,
                    const int          aBusyTimeoutMs /* = 0 */,
-                   const std::string& aVfs           /* = "" */) :
-    mpSQLite(nullptr),
-    mFilename(aFilename) {
+                   const string& aVfs           /* = "" */) :
+    mpSQLite{nullptr},
+    mFilename{aFilename} {
   const int ret = sqlite3_open_v2(aFilename.c_str(), &mpSQLite, aFlags, aVfs.empty() ? nullptr : aVfs.c_str());
   if (SQLITE_OK != ret)
   {
@@ -102,6 +102,7 @@ Column Database::execAndGet(string const &query) {
   return statement.getColumn(0);
 }
 
+// TODO: hasTable
 // Shortcut to test if a table exists.
 bool Database::tableExists(string const &tableName) {
   Statement query(*this, "SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?");
@@ -164,7 +165,7 @@ void Database::loadExtension(string const &apExtensionName, string const &apEntr
   (void)apExtensionName;
   (void)apEntryPointName;
 
-  throw std::runtime_error("sqlite extensions are disabled");
+  throw runtime_error("sqlite extensions are disabled");
 #else
 #ifdef SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION // Since SQLite 3.13 (2016-05-18):
   // Security warning:
@@ -184,7 +185,7 @@ void Database::loadExtension(string const &apExtensionName, string const &apEntr
 }
 
 // Set the key for the current sqlite database instance.
-void Database::key(const std::string& aKey) const {
+void Database::key(const string& aKey) const {
   int pass_len = static_cast<int>(aKey.length());
 #ifdef SQLITE_HAS_CODEC
   if (pass_len > 0) {
@@ -200,7 +201,7 @@ void Database::key(const std::string& aKey) const {
 }
 
 // Reset the key for the current sqlite database instance.
-void Database::rekey(const std::string& aNewKey) const {
+void Database::rekey(const string& aNewKey) const {
 #ifdef SQLITE_HAS_CODEC
   int pass_len = aNewKey.length();
   if (pass_len > 0) {
