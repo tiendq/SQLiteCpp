@@ -22,6 +22,7 @@
 #define SQLITE_DETERMINISTIC 0x800
 #endif // SQLITE_DETERMINISTIC
 
+using namespace std;
 
 namespace SQLite
 {
@@ -78,17 +79,12 @@ Database::Database(const std::string& aFilename,
     mpSQLite(nullptr),
     mFilename(aFilename)
 {
-    const int ret = sqlite3_open_v2(aFilename.c_str(), &mpSQLite, aFlags, aVfs.empty() ? nullptr : aVfs.c_str());
-    if (SQLITE_OK != ret)
-    {
-        const SQLite::Exception exception(mpSQLite, ret); // must create before closing
-        sqlite3_close(mpSQLite); // close is required even in case of error on opening
-        throw exception;
-    }
-    if (aBusyTimeoutMs > 0)
-    {
-        setBusyTimeout(aBusyTimeoutMs);
-    }
+  open(aFilename, aFlags, aBusyTimeoutMs, aVfs);
+}
+
+// Open a temporary in-memory database by default, use SQLite::TEMPORARY to open a temporary on-disk database.
+Database::Database(string const &fileName) : mpSQLite(nullptr), mFilename(fileName) {
+  open(fileName, OPEN_READWRITE | OPEN_CREATE, 0, nullptr);
 }
 
 // Close the SQLite database connection.
@@ -288,6 +284,25 @@ bool Database::isUnencrypted(const std::string& aFilename)
     }
     const SQLite::Exception exception("Could not open database, the aFilename parameter was empty.");
     throw exception;
+}
+
+int Database::open(string const &fileName, int const flags, int const busyTimeoutMs, string const &vfs) {
+  int result = sqlite3_open_v2(fileName.c_str(), &mpSQLite, flags, vfs.empty() ? nullptr : vfs.c_str());
+
+  if (SQLITE_OK == result) {
+    if (busyTimeoutMs > 0)
+      setBusyTimeout(busyTimeoutMs);
+
+    return SQLITE_OK;
+  } else {
+    Exception exception(mpSQLite, result);
+
+    // Whether or not an error occurs when it is opened, resources associated with
+    // the database connection handle should be released by passing it to sqlite3_close()
+    // when it is no longer required.
+    sqlite3_close_v2(mpSQLite);
+    throw exception;
+  }
 }
 
 }  // namespace SQLite
