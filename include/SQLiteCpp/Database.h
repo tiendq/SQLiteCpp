@@ -126,7 +126,7 @@ public:
              const int          aBusyTimeoutMs  = 0,
              const std::string& aVfs            = "");
 
-    Database(std::string const &fileName = MEMORY);
+    Database(std::string const &fileName);
 
     /**
      * @brief Close the SQLite database connection.

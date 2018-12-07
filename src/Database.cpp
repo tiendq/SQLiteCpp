@@ -84,7 +84,8 @@ Database::Database(const std::string& aFilename,
 
 // Open a temporary in-memory database by default, use SQLite::TEMPORARY to open a temporary on-disk database.
 Database::Database(string const &fileName) : mpSQLite(nullptr), mFilename(fileName) {
-  open(fileName, OPEN_READWRITE | OPEN_CREATE, 0, nullptr);
+  SQLITECPP_ASSERT(MEMORY == fileName || TEMPORARY == fileName, "Default access mode OPEN_READWRITE | OPEN_CREATE is only used for temporary databases");
+  open(fileName, OPEN_READWRITE | OPEN_CREATE, 0, "");
 }
 
 // Close the SQLite database connection.
