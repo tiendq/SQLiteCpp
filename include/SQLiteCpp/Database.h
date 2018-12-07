@@ -48,6 +48,12 @@ extern const int OK;                ///< SQLITE_OK (used by inline check() bello
 extern const char*  VERSION;        ///< SQLITE_VERSION string from the sqlite3.h used at compile time
 extern const int    VERSION_NUMBER; ///< SQLITE_VERSION_NUMBER from the sqlite3.h used at compile time
 
+// Private, temporary in-memory database.
+const std::string MEMORY = ":memory:";
+
+// Private, temporary on-disk database.
+const std::string TEMPORARY = "";
+
 /// Return SQLite version string using runtime call to the compiled library
 const char* getLibVersion() noexcept; // nothrow
 /// Return SQLite version number using runtime call to the compiled library
@@ -94,7 +100,7 @@ public:
      * @throw SQLite::Exception in case of error
      */
     Database(const char* apFilename,
-             const int   aFlags         = SQLite::OPEN_READONLY,
+             const int   aFlags,
              const int   aBusyTimeoutMs = 0,
              const char* apVfs          = nullptr);
 
@@ -116,9 +122,11 @@ public:
      * @throw SQLite::Exception in case of error
      */
     Database(const std::string& aFilename,
-             const int          aFlags          = SQLite::OPEN_READONLY,
+             const int          aFlags,
              const int          aBusyTimeoutMs  = 0,
              const std::string& aVfs            = "");
+
+    Database(std::string const &fileName);
 
     /**
      * @brief Close the SQLite database connection.
@@ -299,7 +307,7 @@ public:
     }
 
     /**
-     * @brief Create or redefine a SQL function or aggregate in the sqlite database. 
+     * @brief Create or redefine a SQL function or aggregate in the sqlite database.
      *
      *  This is the equivalent of the sqlite3_create_function_v2 command.
      * @see http://www.sqlite.org/c3ref/create_function.html
@@ -327,7 +335,7 @@ public:
                         void      (*apDestroy)(void *));
 
     /**
-     * @brief Create or redefine a SQL function or aggregate in the sqlite database. 
+     * @brief Create or redefine a SQL function or aggregate in the sqlite database.
      *
      *  This is the equivalent of the sqlite3_create_function_v2 command.
      * @see http://www.sqlite.org/c3ref/create_function.html
@@ -359,7 +367,7 @@ public:
     }
 
     /**
-     * @brief Load a module into the current sqlite database instance. 
+     * @brief Load a module into the current sqlite database instance.
      *
      *  This is the equivalent of the sqlite3_load_extension call, but additionally enables
      *  module loading support prior to loading the requested module.
@@ -378,8 +386,8 @@ public:
     /**
     * @brief Set the key for the current sqlite database instance.
     *
-    *  This is the equivalent of the sqlite3_key call and should thus be called 
-    *  directly after opening the database. 
+    *  This is the equivalent of the sqlite3_key call and should thus be called
+    *  directly after opening the database.
     *  Open encrypted database -> call db.key("secret") -> database ready
     *
     * @param[in] aKey   Key to decode/encode the database
@@ -407,10 +415,10 @@ public:
     /**
     * @brief Test if a file contains an unencrypted database.
     *
-    *  This is a simple test that reads the first bytes of a database file and 
-    *  compares them to the standard header for unencrypted databases. If the 
-    *  header does not match the standard string, we assume that we have an 
-    *  encrypted file. 
+    *  This is a simple test that reads the first bytes of a database file and
+    *  compares them to the standard header for unencrypted databases. If the
+    *  header does not match the standard string, we assume that we have an
+    *  encrypted file.
     *
     * @param[in] aFilename path/uri to a file
     *
@@ -436,6 +444,8 @@ private:
             throw SQLite::Exception(mpSQLite, aRet);
         }
     }
+
+    int open(std::string const &fileName, int const flags, int const busyTimeoutMs, std::string const &vfs);
 
 private:
     sqlite3*    mpSQLite;   ///< Pointer to SQLite Database Connection Handle

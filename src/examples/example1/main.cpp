@@ -28,7 +28,7 @@ string const logoFileName = getFullPath("logo.png");
 class Example {
 public:
   // Constructor
-  Example() : m_db(dbFileName), m_query(m_db, "SELECT * FROM test WHERE weight > :min_weight") {
+  Example() : m_db(dbFileName, SQLite::OPEN_READONLY), m_query(m_db, "SELECT * FROM test WHERE weight > :min_weight") {
   }
 
   /// List the rows where the "weight" column is greater than the provided aParamValue
@@ -67,8 +67,7 @@ int main() {
 
   // Very basic first example (1/7)
   try {
-    // Open a database file in default readonly mode (SQLite::OPEN_READONLY)
-    SQLite::Database db(dbFileName);
+    SQLite::Database db(dbFileName, SQLite::OPEN_READONLY);
     cout << "SQLite database file '" << db.getFilename() << "' opened successfully\n";
 
     // Test if the 'test' table exists
@@ -84,8 +83,7 @@ int main() {
 
   // Simple select query - few variations (2/7)
   try {
-      // Open a database file in default readonly mode (SQLite::OPEN_READONLY)
-    SQLite::Database db(dbFileName);
+    SQLite::Database db(dbFileName, SQLite::OPEN_READONLY);
 
     // Loop to get values of column by index, using auto cast to variable type
     // Compile a SQL query, containing one parameter (index 1)
@@ -181,7 +179,7 @@ int main() {
 	// The execAndGet wrapper example (4/7)
 	try
 	{
-		SQLite::Database db(dbFileName);
+		SQLite::Database db(dbFileName, SQLite::OPEN_READONLY);
 
 		// WARNING: Be very careful with this dangerous method: you have to
 		// make a COPY OF THE result, else it will be destroy before the next line
@@ -194,7 +192,6 @@ int main() {
 
 	// Simple batch queries example (5/7)
 	try {
-		// Open a database file in create/write mode
 		SQLite::Database db("test.db3", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 		cout << "SQLite database file '" << db.getFilename() << "' opened successfully\n";
 
@@ -277,8 +274,10 @@ int main() {
 	remove("transaction.db3");
 
 	// Binary blob and in-memory database example (7/7)
+	cout << "Binary blob and in-memory database example (7/7)\n";
+
 	try {
-		SQLite::Database db(":memory:", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+		SQLite::Database db(SQLite::MEMORY);
 
 		db.exec("DROP TABLE IF EXISTS test");
 		db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value BLOB)");
@@ -331,7 +330,7 @@ int main() {
 	// C++14 and Visual Studio 2015
 	// Example with C++14 variadic bind
 	try {
-		SQLite::Database db(":memory:", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+		SQLite::Database db(SQLite::MEMORY);
 
 		db.exec("DROP TABLE IF EXISTS test");
 		db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)");
