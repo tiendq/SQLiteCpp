@@ -1,16 +1,6 @@
-/**
- * @file    Exception.h
- * @ingroup SQLiteCpp
- * @brief   Encapsulation of the error message from SQLite3 on a std::runtime_error.
- *
- * Copyright (c) 2012-2018 Sebastien Rombauts (sebastien.rombauts@gmail.com)
- *
- * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
- * or copy at http://opensource.org/licenses/MIT)
- */
 #pragma once
 
-#include <stdexcept>
+#include <exception>
 #include <string>
 
 // Forward declaration to avoid inclusion of <sqlite3.h> in a header
@@ -34,68 +24,58 @@ struct sqlite3;
     #define noexcept
 #endif
 
-
-namespace SQLite
-{
-
+namespace SQLite {
 
 /**
  * @brief Encapsulation of the error message from SQLite3, based on std::runtime_error.
  */
-class Exception : public std::runtime_error
-{
+class Exception : public std::runtime_error {
 public:
-    /**
-     * @brief Encapsulation of the error message from SQLite3, based on std::runtime_error.
-     *
-     * @param[in] aErrorMessage The string message describing the SQLite error
-     */
-    explicit Exception(const char* aErrorMessage);
-    explicit Exception(const std::string& aErrorMessage);
+  /**
+   * @brief Encapsulation of the error message from SQLite3, based on std::runtime_error.
+   *
+   * @param[in] aErrorMessage The string message describing the SQLite error
+   */
+  explicit Exception(std::string const &aErrorMessage);
 
-    /**
-     * @brief Encapsulation of the error message from SQLite3, based on std::runtime_error.
-     *
-     * @param[in] aErrorMessage The string message describing the SQLite error
-     * @param[in] ret           Return value from function call that failed.
-     */
-    Exception(const char* aErrorMessage, int ret);
-    Exception(const std::string& aErrorMessage, int ret);
+  /**
+   * @brief Encapsulation of the error message from SQLite3, based on std::runtime_error.
+   *
+   * @param[in] aErrorMessage The string message describing the SQLite error
+   * @param[in] ret           Return value from function call that failed.
+   */
+  Exception(std::string const &aErrorMessage, int code);
 
-   /**
-     * @brief Encapsulation of the error message from SQLite3, based on std::runtime_error.
-     *
-     * @param[in] apSQLite The SQLite object, to obtain detailed error messages from.
-     */
-    explicit Exception(sqlite3* apSQLite);
+  /**
+   * @brief Encapsulation of the error message from SQLite3, based on std::runtime_error.
+   *
+   * @param[in] apSQLite The SQLite object, to obtain detailed error messages from.
+   */
+  explicit Exception(sqlite3* apSQLite);
 
-    /**
-     * @brief Encapsulation of the error message from SQLite3, based on std::runtime_error.
-     *
-     * @param[in] apSQLite  The SQLite object, to obtain detailed error messages from.
-     * @param[in] ret       Return value from function call that failed.
-     */
-    Exception(sqlite3* apSQLite, int ret);
+  /**
+   * @brief Encapsulation of the error message from SQLite3, based on std::runtime_error.
+   *
+   * @param[in] apSQLite  The SQLite object, to obtain detailed error messages from.
+   * @param[in] ret       Return value from function call that failed.
+   */
+  Exception(sqlite3* apSQLite, int code);
 
-    /// Return the result code (if any, otherwise -1).
-    inline int getErrorCode() const noexcept // nothrow
-    {
-        return mErrcode;
-    }
+  /// Return the result code (if any, otherwise -1).
+  inline int code() const noexcept {
+    return mErrcode;
+  }
 
-    /// Return the extended numeric result code (if any, otherwise -1).
-    inline int getExtendedErrorCode() const noexcept // nothrow
-    {
-        return mExtendedErrcode;
-    }
+  /// Return the extended numeric result code (if any, otherwise -1).
+  inline int extendedCode() const noexcept {
+    return mExtendedErrcode;
+  }
 
-    /// Return a string, solely based on the error code
-    const char* getErrorStr() const noexcept; // nothrow
+  /// Return a string, solely based on the error code
+  virtual const char* what() const noexcept;
 
 private:
-    int mErrcode;         ///< Error code value
-    int mExtendedErrcode; ///< Detailed error code if any
+  int mErrcode;         ///< Error code value
+  int mExtendedErrcode; ///< Detailed error code if any
 };
-
-
-}  // namespace SQLite
+} // SQLite
