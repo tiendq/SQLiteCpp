@@ -30,7 +30,7 @@ Backup::~Backup() {
 int Backup::executeStep(const int aNumPage /* = -1 */) {
   const int res = sqlite3_backup_step(mpSQLiteBackup, aNumPage);
   if (SQLITE_OK != res && SQLITE_DONE != res && SQLITE_BUSY != res && SQLITE_LOCKED != res)
-    throw SQLite::Exception(sqlite3_errstr(res), res);
+    throw SQLite::Exception(sqlite3_errstr(res));
 
   return res;
 }
