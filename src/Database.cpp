@@ -34,21 +34,19 @@ int getLibVersionNumber() noexcept {
 
 // Open the provided database UTF-8 filename with SQLite::OPEN_xxx provided flags.
 Database::Database(const string& aFilename,
-                   const int          aFlags         /* = SQLite::OPEN_READONLY*/,
+                   const int          aFlags,
                    const int          aBusyTimeoutMs /* = 0 */,
                    const string& aVfs           /* = "" */) :
     mpSQLite{nullptr},
-    mFilename{aFilename} {
-  const int ret = sqlite3_open_v2(aFilename.c_str(), &mpSQLite, aFlags, aVfs.empty() ? nullptr : aVfs.c_str());
-  if (SQLITE_OK != ret)
-  {
-      const SQLite::Exception exception(mpSQLite, ret); // must create before closing
-      sqlite3_close(mpSQLite); // close is required even in case of error on opening
-      throw exception;
-  }
+    mFilename{aFilename}
+{
+  open(aFilename, aFlags, aBusyTimeoutMs, aVfs);
+}
 
-  if (aBusyTimeoutMs > 0)
-    setBusyTimeout(aBusyTimeoutMs);
+// Open a temporary in-memory database by default, use SQLite::TEMPORARY to open a temporary on-disk database.
+Database::Database(string const &fileName) : mpSQLite(nullptr), mFilename(fileName) {
+  SQLITECPP_ASSERT(MEMORY == fileName || TEMPORARY == fileName, "Default access mode OPEN_READWRITE | OPEN_CREATE is only used for temporary databases");
+  open(fileName, OPEN_READWRITE | OPEN_CREATE, 0, "");
 }
 
 // Close the SQLite database connection.
@@ -213,21 +211,42 @@ void Database::rekey(const string& aNewKey) const {
 }
 
 // Test if a file contains an unencrypted database.
-bool Database::isUnencrypted(const string& aFilename) {
-  if (aFilename.length() > 0) {
-      ifstream fileBuffer(aFilename, ios::in | ios::binary);
-      char header[16];
-      if (fileBuffer.is_open()) {
-          fileBuffer.seekg(0, ios::beg);
-          fileBuffer.getline(header, 16);
-          fileBuffer.close();
-      } else {
-          const SQLite::Exception exception("Error opening file: " + aFilename);
-          throw exception;
-      }
-      return strncmp(header, "SQLite format 3\000", 16) == 0;
-  }
-  const SQLite::Exception exception("Could not open database, the aFilename parameter was empty.");
-  throw exception;
+bool Database::isUnencrypted(const std::string& aFilename)
+{
+    if (aFilename.length() > 0) {
+        std::ifstream fileBuffer(aFilename.c_str(), std::ios::in | std::ios::binary);
+        char header[16];
+        if (fileBuffer.is_open()) {
+            fileBuffer.seekg(0, std::ios::beg);
+            fileBuffer.getline(header, 16);
+            fileBuffer.close();
+        } else {
+            const SQLite::Exception exception("Error opening file: " + aFilename);
+            throw exception;
+        }
+        return strncmp(header, "SQLite format 3\000", 16) == 0;
+    }
+    const SQLite::Exception exception("Could not open database, the aFilename parameter was empty.");
+    throw exception;
 }
+
+int Database::open(string const &fileName, int const flags, int const busyTimeoutMs, string const &vfs) {
+  int result = sqlite3_open_v2(fileName.c_str(), &mpSQLite, flags, vfs.empty() ? nullptr : vfs.c_str());
+
+  if (SQLITE_OK == result) {
+    if (busyTimeoutMs > 0)
+      setBusyTimeout(busyTimeoutMs);
+
+    return SQLITE_OK;
+  } else {
+    Exception exception(mpSQLite, result);
+
+    // Whether or not an error occurs when it is opened, resources associated with
+    // the database connection handle should be released by passing it to sqlite3_close()
+    // when it is no longer required.
+    sqlite3_close_v2(mpSQLite);
+    throw exception;
+  }
+}
+
 } // SQLite

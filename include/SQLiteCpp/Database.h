@@ -2,7 +2,7 @@
 
 #include <string>
 #include <SQLiteCpp/Column.h>
-#include <SQLiteCpp/Utils.h>    // definition of nullptr for C++98/C++03 compilers
+#include <SQLiteCpp/Utils.h>
 
 // Forward declarations to avoid inclusion of <sqlite3.h> in a header
 struct sqlite3;
@@ -26,6 +26,12 @@ extern const int OPEN_URI;
 extern const int OK;
 extern const char *VERSION;
 extern const int VERSION_NUMBER;
+
+// Private, temporary in-memory database.
+const std::string MEMORY = ":memory:";
+
+// Private, temporary on-disk database.
+const std::string TEMPORARY = "";
 
 /// Return SQLite version string using runtime call to the compiled library
 std::string getLibVersion() noexcept;
@@ -73,9 +79,11 @@ public:
    * @throw SQLite::Exception in case of error
    */
   Database(const std::string& aFilename,
-            const int          aFlags          = SQLite::OPEN_READONLY,
+            const int          aFlags,
             const int          aBusyTimeoutMs  = 0,
             const std::string& aVfs            = "");
+
+  Database(std::string const &fileName);
 
   /**
    * @brief Close the SQLite database connection.
@@ -297,6 +305,8 @@ private:
           throw SQLite::Exception(mpSQLite, aRet);
       }
   }
+
+  int open(std::string const &fileName, int const flags, int const busyTimeoutMs, std::string const &vfs);
 
   sqlite3*    mpSQLite;   ///< Pointer to a SQLite database connection handle
   std::string mFilename;  ///< UTF-8 file name used to open the database
