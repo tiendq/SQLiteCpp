@@ -19,8 +19,8 @@ TEST(Exception, copy) {
     const SQLite::Exception ex1("some error", 2);
     const SQLite::Exception ex2 = ex1;
     EXPECT_STREQ(ex1.what(), ex2.what());
-    EXPECT_EQ(ex1.getErrorCode(), ex2.getErrorCode());
-    EXPECT_EQ(ex1.getExtendedErrorCode(), ex2.getExtendedErrorCode());
+    EXPECT_EQ(ex1.code(), ex2.code());
+    EXPECT_EQ(ex1.extendedCode(), ex2.extendedCode());
 }
 
 // see http://eel.is/c++draft/exception#2 or http://www.cplusplus.com/reference/exception/exception/operator=/
@@ -32,8 +32,8 @@ TEST(Exception, assignment) {
     ex2 = ex1;
 
     EXPECT_STREQ(ex1.what(), ex2.what());
-    EXPECT_EQ(ex1.getErrorCode(), ex2.getErrorCode());
-    EXPECT_EQ(ex1.getExtendedErrorCode(), ex2.getExtendedErrorCode());
+    EXPECT_EQ(ex1.code(), ex2.code());
+    EXPECT_EQ(ex1.extendedCode(), ex2.extendedCode());
 }
 
 TEST(Exception, throw_catch) {
@@ -53,14 +53,14 @@ TEST(Exception, constructor) {
         const SQLite::Exception ex1(msg1);
         const SQLite::Exception ex2(msg2);
         EXPECT_STREQ(ex1.what(), ex2.what());
-        EXPECT_EQ(ex1.getErrorCode(), ex2.getErrorCode());
-        EXPECT_EQ(ex1.getExtendedErrorCode(), ex2.getExtendedErrorCode());
+        EXPECT_EQ(ex1.code(), ex2.code());
+        EXPECT_EQ(ex1.extendedCode(), ex2.extendedCode());
     }
     {
         const SQLite::Exception ex1(msg1, 1);
         const SQLite::Exception ex2(msg2, 1);
         EXPECT_STREQ(ex1.what(), ex2.what());
-        EXPECT_EQ(ex1.getErrorCode(), ex2.getErrorCode());
-        EXPECT_EQ(ex1.getExtendedErrorCode(), ex2.getExtendedErrorCode());
+        EXPECT_EQ(ex1.code(), ex2.code());
+        EXPECT_EQ(ex1.extendedCode(), ex2.extendedCode());
     }
 }

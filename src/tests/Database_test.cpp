@@ -32,7 +32,7 @@ void assertion_failed(const char* apFile, const long apLine, const char* apFunc,
 TEST(SQLiteCpp, version) {
     EXPECT_STREQ(SQLITE_VERSION,        SQLite::VERSION);
     EXPECT_EQ   (SQLITE_VERSION_NUMBER, SQLite::VERSION_NUMBER);
-    EXPECT_STREQ(SQLITE_VERSION,        SQLite::getLibVersion());
+    EXPECT_STREQ(SQLITE_VERSION,        SQLite::getLibVersion().c_str());
     EXPECT_EQ   (SQLITE_VERSION_NUMBER, SQLite::getLibVersionNumber());
 }
 
@@ -212,8 +212,8 @@ TEST(Database, execAndGet) {
     EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"third\",  7)"));
 
     // Get a single value result with an easy to use shortcut
-    EXPECT_STREQ("second",  db.execAndGet("SELECT value FROM test WHERE id=2"));
-    EXPECT_STREQ("third",   db.execAndGet("SELECT value FROM test WHERE weight=7"));
+    EXPECT_EQ("second",  db.execAndGet("SELECT value FROM test WHERE id=2"));
+    EXPECT_EQ("third",   db.execAndGet("SELECT value FROM test WHERE weight=7"));
     EXPECT_EQ(3,            db.execAndGet("SELECT weight FROM test WHERE value=\"first\"").getInt());
 }
 
@@ -227,19 +227,19 @@ TEST(Database, execException) {
     EXPECT_THROW(db.exec("INSERT INTO test VALUES (NULL, \"first\",  3)"), SQLite::Exception);
     EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
     EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
-    EXPECT_STREQ("no such table: test", db.getErrorMsg());
+    EXPECT_EQ("no such table: test", db.getErrorMsg());
 
     // Create a new table
     db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT, weight INTEGER)");
     EXPECT_EQ(SQLite::OK, db.getErrorCode());
     EXPECT_EQ(SQLite::OK, db.getExtendedErrorCode());
-    EXPECT_STREQ("not an error", db.getErrorMsg());
+    EXPECT_EQ("not an error", db.getErrorMsg());
 
     // exception with SQL error: "table test has 3 columns but 2 values were supplied"
     EXPECT_THROW(db.exec("INSERT INTO test VALUES (NULL,  3)"), SQLite::Exception);
     EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
     EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
-    EXPECT_STREQ("table test has 3 columns but 2 values were supplied", db.getErrorMsg());
+    EXPECT_EQ("table test has 3 columns but 2 values were supplied", db.getErrorMsg());
 
     // exception with SQL error: "No row to get a column from"
     EXPECT_THROW(db.execAndGet("SELECT weight FROM test WHERE value=\"first\""), SQLite::Exception);
@@ -252,7 +252,7 @@ TEST(Database, execException) {
     EXPECT_THROW(db.exec("INSERT INTO test VALUES (NULL, \"first\", 123, 0.123)"), SQLite::Exception);
     EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
     EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
-    EXPECT_STREQ("table test has 3 columns but 4 values were supplied", db.getErrorMsg());
+    EXPECT_EQ("table test has 3 columns but 4 values were supplied", db.getErrorMsg());
 }
 
 // TODO: test Database::createFunction()
