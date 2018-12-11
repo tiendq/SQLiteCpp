@@ -508,7 +508,7 @@ private:
    */
   inline void check(const int aRet) const {
     if (SQLite::OK != aRet)
-      throw SQLite::Exception(mStmtPtr, aRet);
+      throw SQLite::Exception(mStmtPtr);
   }
 
   /**

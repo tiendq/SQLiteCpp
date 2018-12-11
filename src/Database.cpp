@@ -239,7 +239,7 @@ int Database::open(string const &fileName, int const flags, int const busyTimeou
 
     return SQLITE_OK;
   } else {
-    Exception exception(mpSQLite, result);
+    Exception exception(mpSQLite);
 
     // Whether or not an error occurs when it is opened, resources associated with
     // the database connection handle should be released by passing it to sqlite3_close()

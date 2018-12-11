@@ -49,6 +49,12 @@ void Statement::bind(const int aIndex, const int aValue) {
   check(ret);
 }
 
+void Statement::bind(std::string const &apName, const int aValue) {
+  const int index = sqlite3_bind_parameter_index(mStmtPtr, apName.c_str());
+  const int ret = sqlite3_bind_int(mStmtPtr, index, aValue);
+  check(ret);
+}
+
 // Bind a 32bits unsigned int value to a parameter "?", "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement
 void Statement::bind(const int aIndex, const unsigned aValue) {
   const int ret = sqlite3_bind_int64(mStmtPtr, aIndex, aValue);
@@ -93,6 +99,21 @@ void Statement::bindNoCopy(const int aIndex, const void* apValue, const int aSiz
   check(ret);
 }
 
+// Bind a string value to a parameter "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement
+void Statement::bindNoCopy(string const &apName, string const &aValue) {
+  const int index = sqlite3_bind_parameter_index(mStmtPtr, apName.c_str());
+  const int ret = sqlite3_bind_text(mStmtPtr, index, aValue.c_str(),
+                                    static_cast<int>(aValue.size()), SQLITE_STATIC);
+  check(ret);
+}
+
+// Bind a binary blob value to a parameter "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement
+void Statement::bindNoCopy(string const &apName, const void* apValue, const int aSize) {
+  const int index = sqlite3_bind_parameter_index(mStmtPtr, apName.c_str());
+  const int ret = sqlite3_bind_blob(mStmtPtr, index, apValue, aSize, SQLITE_STATIC);
+  check(ret);
+}
+
 // Bind a NULL value to a parameter "?", "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement
 void Statement::bind(const int aIndex) {
   const int ret = sqlite3_bind_null(mStmtPtr, aIndex);
@@ -104,7 +125,7 @@ bool Statement::executeStep() {
   const int ret = tryExecuteStep();
 
   if ((SQLITE_ROW != ret) && (SQLITE_DONE != ret)) // on row or no (more) row ready, else it's a problem
-    throw SQLite::Exception(mStmtPtr, ret);
+    throw SQLite::Exception(mStmtPtr);
 
   return mbHasRow; // true only if one row is accessible by getColumn(N)
 }
@@ -117,7 +138,7 @@ int Statement::exec() {
     if (SQLITE_ROW == ret)
       throw SQLite::Exception("exec() does not expect results. Use executeStep.");
     else
-      throw SQLite::Exception(mStmtPtr, ret);
+      throw SQLite::Exception(mStmtPtr);
   }
 
   // Return the number of rows modified by those SQL statements (INSERT, UPDATE or DELETE)
@@ -160,6 +181,17 @@ Column Statement::getColumn(const int aIndex) {
 
   // Share the Statement Object handle with the new Column created
   return Column(mStmtPtr, aIndex);
+}
+
+// Return a copy of the column data specified by its column name starting at 0
+// (use the Column copy-constructor)
+Column Statement::getColumn(string const &apName)
+{
+  checkRow();
+  const int index = getColumnIndex(apName);
+
+  // Share the Statement Object handle with the new Column created
+  return Column(mStmtPtr, index);
 }
 
 // Test if the column is NULL
@@ -238,7 +270,7 @@ Statement::Ptr::Ptr(sqlite3* apSQLite, std::string& aQuery) :
 {
   const int ret = sqlite3_prepare_v2(apSQLite, aQuery.c_str(), static_cast<int>(aQuery.size()), &mpStmt, NULL);
   if (SQLITE_OK != ret)
-    throw SQLite::Exception(apSQLite, ret);
+    throw SQLite::Exception(apSQLite);
 
   // Initialize the reference counter of the sqlite3_stmt :
   // used to share the mStmtPtr between Statement and Column objects;

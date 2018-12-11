@@ -114,7 +114,7 @@ public:
    * @brief Shortcut to execute one or multiple statements without results.
    *
    *  This is useful for any kind of statements other than the Data Query Language (DQL) "SELECT" :
-   *  - Data Manipulation Language (DML) statements "INSERT", "UPDATE" and "DELETE"
+   *  - Data Manipulation Lganguage (DML) statements "INSERT", "UPDATE" and "DELETE"
    *  - Data Definition Language (DDL) statements "CREATE", "ALTER" and "DROP"
    *  - Data Control Language (DCL) statements "GRANT", "REVOKE", "COMMIT" and "ROLLBACK"
    *
@@ -301,9 +301,7 @@ private:
   inline void check(const int aRet) const
   {
       if (SQLite::OK != aRet)
-      {
-          throw SQLite::Exception(mpSQLite, aRet);
-      }
+          throw SQLite::Exception(mpSQLite);
   }
 
   int open(std::string const &fileName, int const flags, int const busyTimeoutMs, std::string const &vfs);
