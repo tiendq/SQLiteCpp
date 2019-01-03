@@ -74,10 +74,7 @@ Under Debian/Ubuntu/Mint Linux, you can install the `libsqlite3-dev` package if 
 Clone the repository then init and update submodule `googletest`.
 
 ```shell
-git clone https://github.com/tiendq/SQLiteCpp.git
-cd SQLiteCpp
-git submodule init
-git submodule update
+git clone --recurse-submodules https://github.com/tiendq/SQLiteCpp.git
 ```
 
 #### CMake and tests
