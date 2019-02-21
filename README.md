@@ -1,11 +1,6 @@
 SQLiteC++
 ---------
 
-[![release](https://img.shields.io/github/release/SRombauts/SQLiteCpp.svg)](https://github.com/SRombauts/SQLiteCpp/releases)
-[![Travis CI Linux Build Status](https://travis-ci.org/SRombauts/SQLiteCpp.svg)](https://travis-ci.org/SRombauts/SQLiteCpp "Travis CI Linux Build Status")
-[![AppVeyor Windows Build status](https://ci.appveyor.com/api/projects/status/github/SRombauts/SQLiteCpp?svg=true)](https://ci.appveyor.com/project/SbastienRombauts/SQLiteCpp "AppVeyor Windows Build status")
-[![Coveralls](https://img.shields.io/coveralls/SRombauts/SQLiteCpp.svg)](https://coveralls.io/github/SRombauts/SQLiteCpp "Coveralls test coverage")
-
 SQLiteC++ (SQLiteCpp) is an easy to use modern C++ wrapper for SQLite3 library. It offers an encapsulation around the native C APIs of SQLite, with a few intuitive and well documented C++ classes.
 
 [SQLite](http://www.sqlite.org/about.html) is a C library that implements a serverless transactional SQL database engine. It is the most widely deployed SQL database engine in the world. All of the code and documentation in SQLite has been dedicated to the public domain by the authors.
@@ -26,20 +21,6 @@ SQLiteC++ (SQLiteCpp) is an easy to use modern C++ wrapper for SQLite3 library. 
 
 It is designed using the [RAII](http://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization) idiom, and throwing exceptions in case of SQLite errors (exept in destructors, where `assert()` are used instead). Each SQLiteC++ object must be constructed with a valid SQLite database connection, and then is always valid until destroyed.
 
-## Supported platforms
-
-Developed and tested under the following OSes:
-- macOS 10.11 (Travis CI)
-- Ubuntu 14.04 (Travis CI)
-- Windows XP/10
-
-And the following IDEs/compilers:
-- GCC 4.8.4, 4.9.3, 5.3.0 and 6.1.1 (C++03, C++11, C++14, C++1z)
-- Clang 3.5 and 3.8
-- Xcode 8
-- Visual Studio Community 2015
-- Eclipse CDT under Linux
-
 ## Dependencies
 
 - an STL implementation (even an old one, like the one provided with VC6 should work)
@@ -47,6 +28,7 @@ And the following IDEs/compilers:
 - the SQLite library (3.7.15 minimum from 2012-12-12) either by linking to it dynamicaly or statically (install the `libsqlite3-dev` package under Debian/Ubuntu/Mint Linux), or by adding its source file in your project code base (source code provided in `sqlite3` for Windows), with the [`SQLITE_ENABLE_COLUMN_METADATA`](http://www.sqlite.org/compile.html#enable_column_metadata) macro defined.
 
 ## Getting started
+
 ### Installation
 
 To use this wrapper, you need to add the SQLiteC++ source files from the `src` directory in your project code base, and compile/link against the `sqlite3` library.
@@ -173,25 +155,15 @@ void assertion_failed(const char* apFile, const long apLine, const char* apFunc,
 ```
 
 ### Coding guidelines
+
 The source code use the `CamelCase` naming style variant where:
+
 - Type names (class, struct, typedef, enums...) begin with a capital letter e.g. `Database`
 - Files are named like the class they contain e.g. `Database.cpp`
 - Function and variable names begin with a lower case letter e.g. `bindNoCopy`
 - Member variables begin with 'm_' e.g. `m_fileName`
 - Each file, class, method and member variable is documented using Doxygen tags
 
-## Other C++ SQLite wrappers
-
-See bellow a short comparison of other wrappers done at the time of writing:
- - [sqdbcpp](http://code.google.com/p/sqdbcpp/): RAII design, simple, no dependencies, UTF-8/UTF-16, new BSD license
- - [sqlite3cc](http://ed.am/dev/sqlite3cc): uses boost, modern design, LPGPL
- - [sqlite3pp](https://github.com/iwongu/sqlite3pp): modern design inspired by boost, MIT License
- - [SQLite++](http://sqlitepp.berlios.de/): uses boost build system, Boost License 1.0
- - [CppSQLite](http://www.codeproject.com/Articles/6343/CppSQLite-C-Wrapper-for-SQLite/): famous Code Project but old design, BSD License
- - [easySQLite](http://code.google.com/p/easysqlite/): manages table as structured objects, complex
- - [sqlite_modern_cpp](https://github.com/keramer/sqlite_modern_cpp): modern C++11, all in one file, MIT license
- - [sqlite_orm](https://github.com/fnc12/sqlite_orm): modern C++14, header only all in one file, no raw string queries, BSD-3 license
-
 ### History
 
-This repo is originally forked from [SQLiteCpp](https://github.com/SRombauts/SQLiteCpp), created by [Sébastien Rombauts](mailto:sebastien.rombauts@gmail.com) and other contributors.
+This repo is originally forked from [SQLiteCpp](https://github.com/SRombauts/SQLiteCpp).
